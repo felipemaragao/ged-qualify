@@ -1,0 +1,56 @@
+#!/bin/sh
+export PATH=/usr/local/bin:$PATH;
+
+yum update
+yum install docker -y
+service docker start
+# Docker login notes:
+#   - For no email, just put one blank space.
+#   - Also the private repo protocol and version are needed for docker
+#     to properly setup the .dockercfg file to work with compose
+docker login --username="someuser" --password="asdfasdf" --email=" " https://example.com/v1/
+mv /root/.dockercfg /home/ec2-user/.dockercfg
+chown ec2-user:ec2-user /home/ec2-user/.dockercfg
+usermod -a -G docker ec2-user
+curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+chown root:docker /usr/local/bin/docker-compose
+cat <<EOF >/home/ec2-user/docker-compose.yml
+version: '3.7'
+services:
+  ged-qualify:
+    image: felipemaragao/ged-qualify:latest
+    restart: always
+    ports:
+      - "8080:8080"
+EOF
+chown ec2-user:ec2-user /home/ec2-user/docker-compose.yml
+/usr/local/bin/docker-compose -f /home/ec2-user/docker-compose.yml up -d
+
+
+
+--------------------------
+
+#!/bin/bash
+# Install docker
+apt-get update
+apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+apt-get update
+apt-get install -y docker-ce
+usermod -aG docker ubuntu
+
+# Install docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.21.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# READ MORE: https://docs.docker.com/install/linux/docker-ce/ubuntu/
+# To check: grep "cloud-init\[" /var/log/syslog
+#       OR: less /var/log/cloud-init-output.log
+
+# Manually add user to docker group
+# sudo usermod -aG docker $USER

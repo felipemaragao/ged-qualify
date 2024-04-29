@@ -1,0 +1,25 @@
+version: '3.7'
+
+volumes:
+  postgres_data:
+      driver: local
+
+services:
+
+  localstack:
+    image: localstack/localstack
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS-ACCESS_KEY_ID=localstack
+      - AWS_SECRET_ACCESS_KEY=localstack
+      - AWS-DEFAULT_OUTPUT=json
+      - SERVICES=s3,sqs,lambda,secretsmanager,dynamodb,kms
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DATA_DIR=/tmp/localstack/data
+      - S3_SKIP_SIGNATURE_VALIDATION=0
+    ports:
+      - "4566-4583:4566-4583"
+    volumes:
+      - "${TEMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.stock:/var/run/docker.sock"
+      - ./init-s3.sh:/docker-entrypoint-initaws.d/init-s3.sh
