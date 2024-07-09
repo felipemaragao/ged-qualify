@@ -1,0 +1,21 @@
+name: scan trivy
+on:
+  workflow_call:
+jobs:
+  Scan:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/ged-qualify:latest'
+          scan-type: image
+          format: 'json'
+          output: resultado-trivy.json
+          exit-code: '0'
+          severity: 'CRITICAL,MEDIUM,HIGH,LOW'
+      - name: Upload arquivo resultado trivy
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy
+          path: resutado-trivy.json
