@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  docker:
+  build:
     name: Running Compile Java Multi-arch Docker Image
     runs-on: ubuntu-latest
     steps:
@@ -42,4 +42,12 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ged-qualify:latest
+          tags: |
+              ${{ secrets.DOCKERHUB_USERNAME }}/ged-qualify:latest
+              ${{ secrets.DOCKERHUB_USERNAME }}/ged-qualify:${{ github.run_number }}
+  scan:
+    name: scan da imagem
+    needs: [build]
+    uses: felipemaragao/ged-qualify/.github/workflows/bump-trivy.yml@main
+    with:
+      docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/ged-qualify:${{ github.run_number }}
