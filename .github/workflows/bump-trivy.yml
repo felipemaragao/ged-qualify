@@ -1,6 +1,11 @@
 name: scan trivy
 on:
   workflow_call:
+      inputs:
+        docker_image:
+            type: string
+            required: true
+            description: tag da imagem
 jobs:
   Scan:
     runs-on: ubuntu-20.04
